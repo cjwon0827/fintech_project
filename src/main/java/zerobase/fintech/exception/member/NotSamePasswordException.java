@@ -1,8 +1,9 @@
-package zerobase.fintech.exception;
+package zerobase.fintech.exception.member;
 
 import org.springframework.http.HttpStatus;
+import zerobase.fintech.exception.AbstractException;
 
-public class NotSamePasswordException extends AbstractException{
+public class NotSamePasswordException extends AbstractException {
 
   @Override
   public int getStatusCode() {

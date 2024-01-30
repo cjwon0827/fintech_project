@@ -1,6 +1,7 @@
-package zerobase.fintech.exception;
+package zerobase.fintech.exception.member;
 
 import org.springframework.http.HttpStatus;
+import zerobase.fintech.exception.AbstractException;
 
 public class AlreadyExistUserException extends AbstractException {
 
