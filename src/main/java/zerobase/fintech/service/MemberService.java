@@ -13,11 +13,11 @@ import zerobase.fintech.dto.MemberDto;
 import zerobase.fintech.dto.PasswordCheckDto;
 import zerobase.fintech.dto.UserUpdateDto;
 import zerobase.fintech.entity.Member;
-import zerobase.fintech.exception.AlreadyExistUserException;
-import zerobase.fintech.exception.CheckPasswordException;
-import zerobase.fintech.exception.MemberNotEmailAuthException;
-import zerobase.fintech.exception.NotExistEmailException;
-import zerobase.fintech.exception.NotSamePasswordException;
+import zerobase.fintech.exception.member.AlreadyExistUserException;
+import zerobase.fintech.exception.member.CheckPasswordException;
+import zerobase.fintech.exception.member.MemberNotEmailAuthException;
+import zerobase.fintech.exception.member.NotExistEmailException;
+import zerobase.fintech.exception.member.NotSamePasswordException;
 import zerobase.fintech.repository.MemberRepository;
 import zerobase.fintech.type.MemberRole;
 
@@ -176,5 +176,26 @@ public class MemberService {
 
     member.setUpdatePasswordCheck(true);
     memberRepository.save(member);
+  }
+
+
+  /**
+   * 회원 정보 조회
+   * 1. 이메일이 존재하지 않을 시 예외 발생(NotExistEmailException())
+   * 2. 입력한 비밀 번호와 DB에 있는 비밀번호가 다를 경우 예외 발생(NotSamePasswordException())
+   * @param email
+   * @param passwordCheckDto
+   * @return
+   */
+  public Member findUserInfo(String email, PasswordCheckDto passwordCheckDto) {
+    Member member = memberRepository.findByEmail(email)
+        .orElseThrow(() -> new NotExistEmailException());
+
+
+    if(!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
+      throw new NotSamePasswordException();
+    }
+
+    return member;
   }
 }

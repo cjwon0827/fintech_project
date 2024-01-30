@@ -1,8 +1,9 @@
-package zerobase.fintech.exception;
+package zerobase.fintech.exception.member;
 
 import org.springframework.http.HttpStatus;
+import zerobase.fintech.exception.AbstractException;
 
-public class NotExistEmailException extends AbstractException{
+public class NotExistEmailException extends AbstractException {
 
   @Override
   public int getStatusCode() {

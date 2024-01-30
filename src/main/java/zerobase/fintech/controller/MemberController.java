@@ -119,4 +119,17 @@ public class MemberController {
 
     return ResponseEntity.ok(result);
   }
+
+  @PostMapping("/member/info/{email}")
+  @PreAuthorize("hasRole('USER')")
+  public ResponseEntity<?> findUserInfo(@RequestBody PasswordCheckDto passwordCheckDto, @PathVariable String email){
+    Member member = memberService.findUserInfo(email, passwordCheckDto);
+    Map<String, Object> result = new HashMap<>();
+
+    result.put("이메일", member.getEmail());
+    result.put("이름", member.getUserName());
+    result.put("전화번호", member.getPhone());
+
+    return ResponseEntity.ok(result);
+  }
 }
