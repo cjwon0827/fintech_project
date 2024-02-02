@@ -3,7 +3,8 @@ package zerobase.fintech.dto;
 import lombok.Data;
 
 @Data
-public class AccountDto {
+public class DeleteAccountDto {
+  private String accountNum;
   private String memberPassword;
   private String accountPassword;
 }

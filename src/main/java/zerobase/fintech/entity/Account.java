@@ -23,6 +23,8 @@ public class Account {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long accountId;
 
+  private String accountPassword;
+
   @Column(unique = true, nullable = false)
   private String accountNum;
 
