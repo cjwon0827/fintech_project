@@ -1,6 +1,8 @@
 package zerobase.fintech.controller;
 
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +52,7 @@ public class MemberController {
     Member member = memberService.login(loginDto);
     String token = tokenProvider.generateToken(member.getEmail(), String.valueOf(member.getRole()));
 
-    Map<String, Object> result = new HashMap<>();
+    LinkedHashMap<String, Object> result = new LinkedHashMap<>();
     result.put("status", "로그인 성공");
     result.put("token", token);
     return ResponseEntity.ok(result);
@@ -103,7 +105,8 @@ public class MemberController {
 
 
   /**
-   * 회원 정보 삭제 기능, PasswordCheckDto에 비밀번호 정보 받음
+   * 회원 탈퇴 기능, PasswordCheckDto에 비밀번호 정보 받음
+   * 해당 계정에 계좌가 존재할 경우 회원 탈퇴 불가능
    * @param passwordCheckDto
    * @param email
    * @return
@@ -111,20 +114,26 @@ public class MemberController {
   @DeleteMapping("/delete/member/{email}")
   @PreAuthorize("hasRole('USER')")
   public ResponseEntity<?> deleteUserInfo(@RequestBody PasswordCheckDto passwordCheckDto, @PathVariable String email){
-    String deletedEmail = memberService.deleteUserInfo(email, passwordCheckDto);
+    LinkedHashMap<String, Object> result = new LinkedHashMap<>();
 
-    Map<String, Object> result = new HashMap<>();
-    result.put("status", "삭제 성공");
-    result.put("deletedEmail", deletedEmail);
+    try {
+      String deletedEmail = memberService.deleteUserInfo(email, passwordCheckDto);
+      result.put("status", "삭제 성공");
+      result.put("deletedEmail", deletedEmail);
+
+    } catch (Exception e){
+      result.put("status", "삭제 실패");
+      result.put("message", "현재 계정에 계좌가 존재 하여 회원 탈퇴가 불가능 합니다. 계좌 해지 후 다시 시도 하십시오.");
+    }
 
     return ResponseEntity.ok(result);
   }
 
-  @PostMapping("/member/info/{email}")
+  @GetMapping("/member/info/{email}")
   @PreAuthorize("hasRole('USER')")
   public ResponseEntity<?> findUserInfo(@RequestBody PasswordCheckDto passwordCheckDto, @PathVariable String email){
     Member member = memberService.findUserInfo(email, passwordCheckDto);
-    Map<String, Object> result = new HashMap<>();
+    LinkedHashMap<String, Object> result = new LinkedHashMap<>();
 
     result.put("이메일", member.getEmail());
     result.put("이름", member.getUserName());
