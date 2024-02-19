@@ -15,7 +15,8 @@
 
 
 ## ERD
-![스크린샷 2024-01-17 194241](https://github.com/cjwon0827/fintech_project/assets/83802761/f775c5f7-a10b-4c10-a836-5e9a32bc89be)
+![스크린샷 2024-02-19 201657](https://github.com/cjwon0827/fintech_project/assets/83802761/1f9bdaef-faf4-48aa-9b5d-51e73976badb)
+
 
 
 
@@ -38,6 +39,7 @@
 * 계좌
   * 계좌 생성
     * 회원은 계좌를 생성할 수 있다.
+    * 한 회원 당 최대 10개 까지 계좌를 생성할 수 있다.
 
   * 계좌 입금
     * 회원은 본인 계좌에 입금할 수 있다.
