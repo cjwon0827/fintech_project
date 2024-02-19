@@ -8,10 +8,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zerobase.fintech.component.MailComponent;
-import zerobase.fintech.dto.LoginDto;
-import zerobase.fintech.dto.MemberDto;
 import zerobase.fintech.dto.PasswordCheckDto;
-import zerobase.fintech.dto.UserUpdateDto;
+import zerobase.fintech.dto.member.LoginDto;
+import zerobase.fintech.dto.member.MemberDto;
+import zerobase.fintech.dto.member.UserUpdateDto;
 import zerobase.fintech.entity.Member;
 import zerobase.fintech.exception.member.AlreadyExistUserException;
 import zerobase.fintech.exception.member.CheckPasswordException;
@@ -80,11 +80,11 @@ public class MemberService {
     Member member = memberRepository.findByEmail(loginDto.getEmail())
         .orElseThrow(() -> new NotExistEmailException());
 
-    if(!member.isEmailAuthYN()){
+    if (!member.isEmailAuthYN()){
       throw new MemberNotEmailAuthException();
     }
 
-    if(!passwordEncoder.matches(loginDto.getPassword(), member.getPassword())){
+    if (!passwordEncoder.matches(loginDto.getPassword(), member.getPassword())){
       throw new NotSamePasswordException();
     }
 
@@ -98,7 +98,7 @@ public class MemberService {
    */
   public boolean emailAuth(String uuid){
     Optional<Member> optionalMember = memberRepository.findByEmailAuthKey(uuid);
-    if(optionalMember.isEmpty()){
+    if (optionalMember.isEmpty()){
       return false;
     }
 
@@ -124,7 +124,7 @@ public class MemberService {
     Member nowMember = memberRepository.findByEmail(email)
         .orElseThrow(() -> new NotExistEmailException());
 
-    if(!nowMember.isUpdatePasswordCheck()){
+    if (!nowMember.isUpdatePasswordCheck()){
       throw new CheckPasswordException();
     }
 
@@ -150,7 +150,7 @@ public class MemberService {
     Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new NotExistEmailException());
 
-    if(!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
+    if (!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
       throw new NotSamePasswordException();
     }
 
@@ -170,7 +170,7 @@ public class MemberService {
         .orElseThrow(() -> new NotExistEmailException());
 
 
-    if(!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
+    if (!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
       throw new NotSamePasswordException();
     }
 
@@ -192,7 +192,7 @@ public class MemberService {
         .orElseThrow(() -> new NotExistEmailException());
 
 
-    if(!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
+    if (!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
       throw new NotSamePasswordException();
     }
 
