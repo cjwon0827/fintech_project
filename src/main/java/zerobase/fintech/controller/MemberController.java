@@ -33,8 +33,7 @@ public class MemberController {
   private final TokenProvider tokenProvider;
 
   /**
-   * 회원가입을 위한 기능, MemberDto에 회원 정보 받음
-   *
+   * 회원가입을 위한 API
    * @param memberDto
    * @return
    */
@@ -51,8 +50,7 @@ public class MemberController {
 
 
   /**
-   * 로그인을 위한 기능, LoginDto에 로그인을 위한 정보 받음
-   *
+   * 로그인을 위한 API
    * @param loginDto
    * @return
    */
@@ -74,8 +72,7 @@ public class MemberController {
 
 
   /**
-   * 회원가입 정보 입력 후 메일 인증을 위한 기능
-   *
+   * 회원가입 정보 입력 후 메일 인증을 위한 API
    * @param uuid
    * @return
    */
@@ -91,8 +88,7 @@ public class MemberController {
 
 
   /**
-   * 회원 정보 수정을 위한 기능, UserUpdateDto에 회원 정보 수정 데이터 받음
-   *
+   * 회원 정보 수정을 위한 API
    * @param userUpdateDto
    * @param email
    * @return
@@ -110,8 +106,7 @@ public class MemberController {
   }
 
   /**
-   * 회원 정보 수정 전 비밀번호 체크 기능, PasswordCheckDto에 비밀번호 정보 받음
-   *
+   * 회원 정보 수정 전 비밀번호 체크 기능을 위한 API
    * @param passwordCheckDto
    * @param email
    * @return
@@ -133,8 +128,7 @@ public class MemberController {
 
 
   /**
-   * 회원 탈퇴 기능, PasswordCheckDto에 비밀번호 정보 받음 해당 계정에 계좌가 존재할 경우 회원 탈퇴 불가능
-   *
+   * 회원 탈퇴 API
    * @param passwordCheckDto
    * @param email
    * @return
@@ -162,6 +156,14 @@ public class MemberController {
     return ResponseEntity.ok(result);
   }
 
+
+  /**
+   * 회원 정보 조회 API
+   * @param passwordCheckDto
+   * @param bindingResult
+   * @param email
+   * @return
+   */
   @GetMapping("/member/{email}")
   @PreAuthorize("hasRole('USER')")
   public ResponseEntity<?> findUserInfo(@Validated @RequestBody PasswordCheckDto passwordCheckDto, BindingResult bindingResult, @PathVariable String email) {
@@ -180,6 +182,11 @@ public class MemberController {
     return ResponseEntity.ok(result);
   }
 
+  /**
+   * 입력한 값을 Controller 단에서 Validation 체크 하는 API
+   * @param bindingResult
+   * @return
+   */
   public ResponseEntity<?> getErrorResponseEntity(BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
       StringBuilder sb = new StringBuilder();
