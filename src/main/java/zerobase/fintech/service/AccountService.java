@@ -10,18 +10,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zerobase.fintech.dto.AccountDto;
-import zerobase.fintech.dto.DeleteAccountDto;
-import zerobase.fintech.dto.DepositWithdrawDto;
+import zerobase.fintech.dto.account.AccountDto;
+import zerobase.fintech.dto.account.DeleteAccountDto;
+import zerobase.fintech.dto.account.DepositWithdrawDto;
 import zerobase.fintech.entity.Account;
 import zerobase.fintech.entity.Member;
+import zerobase.fintech.entity.Transaction;
 import zerobase.fintech.exception.account.AccountPasswordFormatException;
-import zerobase.fintech.exception.account.AccountPasswordLengthException;
-import zerobase.fintech.exception.account.AmountLessThanZeroException;
 import zerobase.fintech.exception.account.ExistBalanceException;
 import zerobase.fintech.exception.account.InsufficientBalanceException;
 import zerobase.fintech.exception.account.LimitCreateAccountException;
@@ -30,6 +28,8 @@ import zerobase.fintech.exception.member.NotExistEmailException;
 import zerobase.fintech.exception.member.NotSamePasswordException;
 import zerobase.fintech.repository.AccountRepository;
 import zerobase.fintech.repository.MemberRepository;
+import zerobase.fintech.repository.TransactionRepository;
+import zerobase.fintech.type.TransactionType;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +38,7 @@ public class AccountService {
   private final BCryptPasswordEncoder passwordEncoder;
   private final AccountRepository accountRepository;
   private final MemberRepository memberRepository;
+  private final TransactionRepository transactionRepository;
 
 
   /**
@@ -59,10 +60,6 @@ public class AccountService {
 
     if (!passwordEncoder.matches(accountDto.getMemberPassword(), member.getPassword())) {
       throw new NotSamePasswordException();
-    }
-
-    if (accountDto.getAccountPassword().length() != 4) {
-      throw new AccountPasswordLengthException();
     }
 
     try {
@@ -91,8 +88,9 @@ public class AccountService {
 
   /**
    * 계좌 해지 기능 서비스
-   * 1. 계좌를 해지하기 위해 사용자는 계정의 비밀번호, 계좌 번호, 계좌 비밀번호를 입력한다.
+   * 1. 계좌를 해지하기 위해 사용자는 계정의 비밀번호, 계좌 번호, 계좌 비밀번호를 입력받음
    * 2. 계좌의 잔액이 존재하는 경우 해당 계좌는 해지할 수 없다. (ExistBalanceException())
+   * 3. 계좌가 정상적으로 삭제 된 경우 해당 계좌번호를 return
    * @param email
    * @param deleteAccountDto
    * @return
@@ -146,8 +144,7 @@ public class AccountService {
   /**
    * 계좌 입금 기능 서비스
    * 1. 사용자는 계좌번호와 입금 금액과 계좌 비밀번호를 입력한다.
-   * 2. 입금 금액은 음수가 될 수 없으며 음수가 입력될 시 예외 발생(AmountLessThanZeroException())
-   * 3. 입금에 성공하면 기존 금액 + 입금 금액이 계좌에 저장
+   * 2. 입금에 성공하면 기존 금액 + 입금 금액이 계좌에 저장
    * @param accountNum
    * @param depositWithdrawDto
    * @return
@@ -157,17 +154,23 @@ public class AccountService {
     Account account = accountRepository.findByAccountNum(accountNum)
         .orElseThrow(() -> new NotExistAccountException());
 
-    if(!passwordEncoder.matches(depositWithdrawDto.getAccountPassword(), account.getAccountPassword())){
+    if (!passwordEncoder.matches(depositWithdrawDto.getAccountPassword(), account.getAccountPassword())){
       throw new NotSamePasswordException();
-    }
-
-    if(depositWithdrawDto.getAmount() <= 0){
-      throw new AmountLessThanZeroException();
     }
 
     account.setBalance(account.getBalance() + depositWithdrawDto.getAmount());
     accountRepository.save(account);
 
+    Transaction transaction = Transaction.builder()
+        .transactionAmount(depositWithdrawDto.getAmount())
+        .transactionBalance(account.getBalance() + depositWithdrawDto.getAmount())
+        .destinationAccount(accountNum)
+        .transactionDate(LocalDateTime.now())
+        .transactionType(TransactionType.DEPOSIT.name())
+        .account(account)
+        .build();
+
+    transactionRepository.save(transaction);
     return account;
   }
 
@@ -180,26 +183,34 @@ public class AccountService {
    * @param depositWithdrawDto
    * @return
    */
+
   @Transactional
   public Account withdrawAccount(String accountNum, DepositWithdrawDto depositWithdrawDto) {
     Account account = accountRepository.findByAccountNum(accountNum)
         .orElseThrow(() -> new NotExistAccountException());
 
-    if(!passwordEncoder.matches(depositWithdrawDto.getAccountPassword(), account.getAccountPassword())){
+    if (!passwordEncoder.matches(depositWithdrawDto.getAccountPassword(), account.getAccountPassword())){
       throw new NotSamePasswordException();
     }
 
-    if(depositWithdrawDto.getAmount() <= 0){
-      throw new AmountLessThanZeroException();
-    }
 
-    if(account.getBalance() - depositWithdrawDto.getAmount() < 0){
+    if (account.getBalance() - depositWithdrawDto.getAmount() < 0){
       throw new InsufficientBalanceException();
     }
 
     account.setBalance(account.getBalance() - depositWithdrawDto.getAmount());
     accountRepository.save(account);
 
+    Transaction transaction = Transaction.builder()
+        .transactionAmount(depositWithdrawDto.getAmount())
+        .transactionBalance(account.getBalance() - depositWithdrawDto.getAmount())
+        .destinationAccount(accountNum)
+        .transactionDate(LocalDateTime.now())
+        .transactionType(TransactionType.WITHDRAW.name())
+        .account(account)
+        .build();
+
+    transactionRepository.save(transaction);
     return account;
   }
 

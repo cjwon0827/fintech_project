@@ -1,9 +1,9 @@
-package zerobase.fintech.exception.account;
+package zerobase.fintech.exception.card;
 
 import org.springframework.http.HttpStatus;
 import zerobase.fintech.exception.AbstractException;
 
-public class AmountLessThanZeroException extends AbstractException {
+public class LimitCreateCardException extends AbstractException {
 
   @Override
   public int getStatusCode() {
@@ -12,6 +12,6 @@ public class AmountLessThanZeroException extends AbstractException {
 
   @Override
   public String getMessage() {
-    return "입금 금액은 0원 보다 커야합니다.";
+    return "한 계좌 당 하나의 카드 개설만 가능 합니다.";
   }
 }

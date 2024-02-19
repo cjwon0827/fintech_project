@@ -31,8 +31,9 @@ public class Account {
   private int balance;
 
   private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
 
   @ManyToOne
   @JoinColumn(name = "member_id")
-  Member member;
+  private Member member;
 }
