@@ -29,6 +29,13 @@ public class TransactionController {
   private final TransactionService transactionService;
   private final MemberController memberController;
 
+
+  /**
+   * 계좌 송금 하는 API
+   * @param transferDto
+   * @param bindingResult
+   * @return
+   */
   @PostMapping("/money")
   public ResponseEntity<?> transfer(@Validated @RequestBody TransferDto transferDto, BindingResult bindingResult){
     ResponseEntity<?> response = memberController.getErrorResponseEntity(bindingResult);
@@ -45,6 +52,14 @@ public class TransactionController {
     return ResponseEntity.ok(result);
   }
 
+
+  /**
+   * 해당 계좌의 거래 내역 타입 별로 조회 하는 API
+   * @param accountDto
+   * @param bindingResult
+   * @param page
+   * @return
+   */
   @GetMapping
   public ResponseEntity<?> transactionInfo(@Validated @RequestBody AccountDto accountDto, BindingResult bindingResult, @RequestParam(value = "page", defaultValue = "0") int page){
     ResponseEntity<?> response = memberController.getErrorResponseEntity(bindingResult);
