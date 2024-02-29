@@ -13,9 +13,10 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zerobase.fintech.dto.account.AccountDto;
-import zerobase.fintech.dto.account.DeleteAccountDto;
-import zerobase.fintech.dto.account.DepositWithdrawDto;
+import zerobase.fintech.dto.request.account.CreateAccountDto;
+import zerobase.fintech.dto.request.account.DeleteAccountDto;
+import zerobase.fintech.dto.request.account.DepositWithdrawDto;
+import zerobase.fintech.dto.request.account.FindAccountDto;
 import zerobase.fintech.entity.Account;
 import zerobase.fintech.entity.Member;
 import zerobase.fintech.entity.Transaction;
@@ -54,7 +55,7 @@ public class AccountService {
    * @return
    */
   @Transactional
-  public Account createAccount(String email, AccountDto accountDto) {
+  public Account createAccount(String email, CreateAccountDto accountDto) {
     Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new NotExistEmailException());
 
@@ -126,7 +127,7 @@ public class AccountService {
    * @param page
    * @return
    */
-  public List<Account> findAccount(String email, AccountDto accountDto, int page) {
+  public List<Account> findAccount(String email, FindAccountDto accountDto, int page) {
     Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new NotExistEmailException());
 
@@ -159,7 +160,6 @@ public class AccountService {
     }
 
     account.setBalance(account.getBalance() + depositWithdrawDto.getAmount());
-    accountRepository.save(account);
 
     Transaction transaction = Transaction.builder()
         .transactionAmount(depositWithdrawDto.getAmount())
@@ -199,7 +199,6 @@ public class AccountService {
     }
 
     account.setBalance(account.getBalance() - depositWithdrawDto.getAmount());
-    accountRepository.save(account);
 
     Transaction transaction = Transaction.builder()
         .transactionAmount(depositWithdrawDto.getAmount())

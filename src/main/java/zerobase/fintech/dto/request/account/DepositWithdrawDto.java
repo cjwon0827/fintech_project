@@ -1,4 +1,4 @@
-package zerobase.fintech.dto.account;
+package zerobase.fintech.dto.request.account;
 
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
