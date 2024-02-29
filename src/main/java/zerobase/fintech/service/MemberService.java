@@ -8,10 +8,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zerobase.fintech.component.MailComponent;
-import zerobase.fintech.dto.PasswordCheckDto;
-import zerobase.fintech.dto.member.LoginDto;
-import zerobase.fintech.dto.member.MemberDto;
-import zerobase.fintech.dto.member.UserUpdateDto;
+import zerobase.fintech.dto.request.PasswordCheckDto;
+import zerobase.fintech.dto.request.member.LoginDto;
+import zerobase.fintech.dto.request.member.CreateMemberDto;
+import zerobase.fintech.dto.request.member.UserUpdateDto;
 import zerobase.fintech.entity.Member;
 import zerobase.fintech.exception.member.AlreadyExistUserException;
 import zerobase.fintech.exception.member.CheckPasswordException;
@@ -37,7 +37,7 @@ public class MemberService {
    * @return
    */
   @Transactional
-  public Member createMember(MemberDto memberDto) {
+  public void createMember(CreateMemberDto memberDto) {
     boolean exist = memberRepository.existsByEmail(memberDto.getEmail());
 
     if(exist){
@@ -65,8 +65,6 @@ public class MemberService {
         "<a href=http://localhost:8080/member/email-auth?id=" + authKey + ">인증완료</a>";
 
     mailComponent.sendMail(email, subject, text);
-
-    return member;
   }
 
   /**
@@ -96,6 +94,7 @@ public class MemberService {
    * @param uuid
    * @return
    */
+  @Transactional
   public boolean emailAuth(String uuid){
     Optional<Member> optionalMember = memberRepository.findByEmailAuthKey(uuid);
     if (optionalMember.isEmpty()){
@@ -107,7 +106,6 @@ public class MemberService {
     member.setEmailAuthYN(true);
     member.setRegisteredAt(LocalDateTime.now());
 
-    memberRepository.save(member);
     return true;
   }
 
@@ -132,7 +130,6 @@ public class MemberService {
     nowMember.setPhone(userUpdateDto.getPhone());
     nowMember.setUpdatedAt(LocalDateTime.now());
     nowMember.setUpdatePasswordCheck(false);
-    memberRepository.save(nowMember);
 
     return nowMember;
   }
@@ -165,17 +162,16 @@ public class MemberService {
    * @param email
    * @param passwordCheckDto
    */
+  @Transactional
   public void updateUserInfoPasswordCheck(String email, PasswordCheckDto passwordCheckDto) {
     Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new NotExistEmailException());
-
 
     if (!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
       throw new NotSamePasswordException();
     }
 
     member.setUpdatePasswordCheck(true);
-    memberRepository.save(member);
   }
 
 
@@ -190,7 +186,6 @@ public class MemberService {
   public Member findUserInfo(String email, PasswordCheckDto passwordCheckDto) {
     Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new NotExistEmailException());
-
 
     if (!passwordEncoder.matches(passwordCheckDto.getPassword(), member.getPassword())){
       throw new NotSamePasswordException();

@@ -1,27 +1,28 @@
 package zerobase.fintech.controller;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zerobase.fintech.component.TokenProvider;
-import zerobase.fintech.dto.PasswordCheckDto;
-import zerobase.fintech.dto.member.LoginDto;
-import zerobase.fintech.dto.member.MemberDto;
-import zerobase.fintech.dto.member.UserUpdateDto;
+import zerobase.fintech.dto.request.PasswordCheckDto;
+import zerobase.fintech.dto.request.member.CreateMemberDto;
+import zerobase.fintech.dto.request.member.LoginDto;
+import zerobase.fintech.dto.request.member.UserUpdateDto;
+import zerobase.fintech.dto.response.PasswordCheckResponse;
+import zerobase.fintech.dto.response.member.CreateMemberResponse;
+import zerobase.fintech.dto.response.member.DeleteUserResponse;
+import zerobase.fintech.dto.response.member.FindUserResponse;
+import zerobase.fintech.dto.response.member.LoginResponse;
+import zerobase.fintech.dto.response.member.UpdateUserResponse;
 import zerobase.fintech.entity.Member;
 import zerobase.fintech.service.MemberService;
 
@@ -38,14 +39,9 @@ public class MemberController {
    * @return
    */
   @PostMapping("/member/new")
-  public ResponseEntity<?> createMember(@Validated @RequestBody MemberDto memberDto, BindingResult bindingResult) {
-    ResponseEntity<?> response = getErrorResponseEntity(bindingResult);
-    if (response != null) {
-      return response;
-    }
-
-    Member result = memberService.createMember(memberDto);
-    return ResponseEntity.ok(result);
+  public ResponseEntity<?> createMember(@Validated @RequestBody CreateMemberDto memberDto) {
+    memberService.createMember(memberDto);
+    return ResponseEntity.ok(CreateMemberResponse.response());
   }
 
 
@@ -55,19 +51,11 @@ public class MemberController {
    * @return
    */
   @PostMapping("/login")
-  public ResponseEntity<?> login(@Validated @RequestBody LoginDto loginDto, BindingResult bindingResult) {
-    ResponseEntity<?> response = getErrorResponseEntity(bindingResult);
-    if (response != null) {
-      return response;
-    }
-
+  public ResponseEntity<?> login(@Validated @RequestBody LoginDto loginDto) {
     Member member = memberService.login(loginDto);
     String token = tokenProvider.generateToken(member.getEmail(), String.valueOf(member.getRole()));
 
-    LinkedHashMap<String, Object> result = new LinkedHashMap<>();
-    result.put("status", "로그인 성공");
-    result.put("token", token);
-    return ResponseEntity.ok(result);
+    return ResponseEntity.ok(LoginResponse.response(token));
   }
 
 
@@ -93,16 +81,14 @@ public class MemberController {
    * @param email
    * @return
    */
-  @PutMapping("/member/{email}")
+  @PatchMapping("/member")
   @PreAuthorize("hasRole('USER')")
-  public ResponseEntity<?> updateUserInfo(@Validated @RequestBody UserUpdateDto userUpdateDto, BindingResult bindingResult, @PathVariable String email) {
-    ResponseEntity<?> response = getErrorResponseEntity(bindingResult);
-    if (response != null) {
-      return response;
-    }
+  public ResponseEntity<?> updateUserInfo(@RequestParam String email, @Validated @RequestBody UserUpdateDto userUpdateDto) {
+    Member member = memberService.updateUserInfo(email, userUpdateDto);
 
-    Member result = memberService.updateUserInfo(email, userUpdateDto);
-    return ResponseEntity.ok(result);
+    return ResponseEntity.ok(UpdateUserResponse.response(
+                            member.getUserName(),
+                            member.getPhone()));
   }
 
   /**
@@ -111,19 +97,12 @@ public class MemberController {
    * @param email
    * @return
    */
-  @PostMapping("/member/password-check/{email}")
+  @PostMapping("/member/password-check")
   @PreAuthorize("hasRole('USER')")
-  public ResponseEntity<?> updateUserInfoPasswordCheck(@Validated @RequestBody PasswordCheckDto passwordCheckDto, BindingResult bindingResult, @PathVariable String email) {
-    ResponseEntity<?> response = getErrorResponseEntity(bindingResult);
-    if (response != null) {
-      return response;
-    }
-
+  public ResponseEntity<?> updateUserInfoPasswordCheck(@RequestParam String email, @Validated @RequestBody PasswordCheckDto passwordCheckDto) {
     memberService.updateUserInfoPasswordCheck(email, passwordCheckDto);
-    Map<String, Object> result = new HashMap<>();
-    result.put("status", "비밀번호 확인 완료");
 
-    return ResponseEntity.ok(result);
+    return ResponseEntity.ok(PasswordCheckResponse.response());
   }
 
 
@@ -133,71 +112,32 @@ public class MemberController {
    * @param email
    * @return
    */
-  @DeleteMapping("/member/{email}")
+  @DeleteMapping("/member")
   @PreAuthorize("hasRole('USER')")
-  public ResponseEntity<?> deleteUserInfo(@Validated @RequestBody PasswordCheckDto passwordCheckDto, BindingResult bindingResult, @PathVariable String email) {
-    ResponseEntity<?> response = getErrorResponseEntity(bindingResult);
-    if (response != null) {
-      return response;
-    }
-
-    LinkedHashMap<String, Object> result = new LinkedHashMap<>();
+  public ResponseEntity<?> deleteUserInfo(@Validated @RequestBody PasswordCheckDto passwordCheckDto, @RequestParam String email) {
 
     try {
       String deletedEmail = memberService.deleteUserInfo(email, passwordCheckDto);
-      result.put("status", "삭제 성공");
-      result.put("deletedEmail", deletedEmail);
-
+      return ResponseEntity.ok(DeleteUserResponse.okResponse(deletedEmail));
     } catch (Exception e) {
-      result.put("status", "삭제 실패");
-      result.put("message", "현재 계정에 계좌가 존재 하여 회원 탈퇴가 불가능 합니다. 계좌 해지 후 다시 시도 하십시오.");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(DeleteUserResponse.errorResponse());
     }
-
-    return ResponseEntity.ok(result);
   }
-
 
   /**
    * 회원 정보 조회 API
    * @param passwordCheckDto
-   * @param bindingResult
    * @param email
    * @return
    */
-  @GetMapping("/member/{email}")
+  @GetMapping("/member")
   @PreAuthorize("hasRole('USER')")
-  public ResponseEntity<?> findUserInfo(@Validated @RequestBody PasswordCheckDto passwordCheckDto, BindingResult bindingResult, @PathVariable String email) {
-    ResponseEntity<?> response = getErrorResponseEntity(bindingResult);
-    if (response != null) {
-      return response;
-    }
-
+  public ResponseEntity<?> findUserInfo(@Validated @RequestBody PasswordCheckDto passwordCheckDto, @RequestParam String email) {
     Member member = memberService.findUserInfo(email, passwordCheckDto);
-    LinkedHashMap<String, Object> result = new LinkedHashMap<>();
 
-    result.put("이메일", member.getEmail());
-    result.put("이름", member.getUserName());
-    result.put("전화번호", member.getPhone());
-
-    return ResponseEntity.ok(result);
-  }
-
-  /**
-   * 입력한 값을 Controller 단에서 Validation 체크 하는 API
-   * @param bindingResult
-   * @return
-   */
-  public ResponseEntity<?> getErrorResponseEntity(BindingResult bindingResult) {
-    if (bindingResult.hasErrors()) {
-      StringBuilder sb = new StringBuilder();
-
-      bindingResult.getAllErrors().forEach(e -> {
-        String message = e.getDefaultMessage();
-        sb.append(message + "\n");
-      });
-
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(sb.toString());
-    }
-    return null;
+    return ResponseEntity.ok(FindUserResponse.response(
+                            member.getEmail(),
+                            member.getUserName(),
+                            member.getPhone()));
   }
 }

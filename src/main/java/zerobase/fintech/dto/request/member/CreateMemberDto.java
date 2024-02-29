@@ -1,11 +1,11 @@
-package zerobase.fintech.dto.member;
+package zerobase.fintech.dto.request.member;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import lombok.Getter;
 
 @Getter
-public class MemberDto {
+public class CreateMemberDto {
   @Email
   @NotBlank(message = "이메일은 공백일 수 없습니다.")
   private String email;       //이메일(아이디)
