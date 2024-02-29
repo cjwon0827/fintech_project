@@ -2,6 +2,7 @@ package zerobase.fintech.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import zerobase.fintech.type.ErrorResponse;
@@ -16,5 +17,17 @@ public class CustomExceptionHandler {
         .build();
 
     return new ResponseEntity<>(errorResponse, HttpStatus.resolve(e.getStatusCode()));
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex){
+    StringBuilder sb = new StringBuilder();
+
+    ex.getBindingResult().getAllErrors().forEach(e -> {
+      String message = e.getDefaultMessage();
+      sb.append(message + "\n");
+    });
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(sb.toString());
   }
 }
