@@ -15,13 +15,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zerobase.fintech.dto.card.CardHistoryDto;
-import zerobase.fintech.dto.card.CreateCardDto;
-import zerobase.fintech.dto.card.DeleteCardDto;
-import zerobase.fintech.dto.card.FindCardByAccountDto;
-import zerobase.fintech.dto.card.FindCardByMemberDto;
-import zerobase.fintech.dto.card.PaymentCardDto;
-import zerobase.fintech.dto.card.UseCardDto;
+import zerobase.fintech.dto.request.card.CardHistoryDto;
+import zerobase.fintech.dto.request.card.CreateCardDto;
+import zerobase.fintech.dto.request.card.DeleteCardDto;
+import zerobase.fintech.dto.request.card.FindCardByAccountDto;
+import zerobase.fintech.dto.request.card.FindCardByMemberDto;
+import zerobase.fintech.dto.request.card.PaymentCardDto;
+import zerobase.fintech.dto.request.card.UseCardDto;
 import zerobase.fintech.entity.Account;
 import zerobase.fintech.entity.CreditCard;
 import zerobase.fintech.entity.Member;
@@ -189,7 +189,6 @@ public class CreditCardService {
 
     creditCard.setUsageAmount(creditCard.getUsageAmount() + useCardDto.getAmount());
     creditCard.setPaymentYn(false);
-    creditCardRepository.save(creditCard);
 
     Transaction transaction = Transaction.builder()
         .transactionAmount(useCardDto.getAmount())
@@ -253,7 +252,6 @@ public class CreditCardService {
           creditCard.setPaymentYn(true);
         }
         creditCard.setPaymentDate(LocalDateTime.now());
-        creditCardRepository.save(creditCard);
 
         Transaction transaction = Transaction.builder()
             .transactionAmount(creditCard.getUsageAmount())
@@ -300,7 +298,6 @@ public class CreditCardService {
 
     account.setBalance(account.getBalance() - paymentCardDto.getAmount());
     account.setUpdatedAt(LocalDateTime.now());
-    accountRepository.save(account);
 
     if (!creditCard.isCardAvailable()) {
       if (creditCard.getUsageAmount() - paymentCardDto.getAmount() == 0) {
@@ -320,8 +317,6 @@ public class CreditCardService {
       }
       creditCard.setPaymentDate(LocalDateTime.now());
     }
-
-    creditCardRepository.save(creditCard);
 
     Transaction transaction = Transaction.builder()
         .startAccount(account.getAccountNum())

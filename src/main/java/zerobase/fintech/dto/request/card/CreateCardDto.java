@@ -1,4 +1,4 @@
-package zerobase.fintech.dto.card;
+package zerobase.fintech.dto.request.card;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
