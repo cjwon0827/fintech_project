@@ -12,8 +12,8 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zerobase.fintech.dto.account.AccountDto;
-import zerobase.fintech.dto.transaction.TransferDto;
+import zerobase.fintech.dto.request.account.CreateAccountDto;
+import zerobase.fintech.dto.request.transaction.TransferDto;
 import zerobase.fintech.entity.Account;
 import zerobase.fintech.entity.Member;
 import zerobase.fintech.entity.Transaction;
@@ -109,7 +109,7 @@ public class TransactionService {
    * @param page
    * @return
    */
-  public List<Transaction> transactionInfo(AccountDto accountDto, int page) {
+  public List<Transaction> transactionInfo(CreateAccountDto accountDto, int page) {
     Account account = accountRepository.findByAccountNum(accountDto.getAccountNum())
         .orElseThrow(() -> new NotExistAccountException());
 

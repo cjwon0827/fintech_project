@@ -1,4 +1,4 @@
-package zerobase.fintech.dto.transaction;
+package zerobase.fintech.dto.request.transaction;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
