@@ -1,4 +1,4 @@
-package zerobase.fintech.dto;
+package zerobase.fintech.dto.request;
 
 import javax.validation.constraints.NotBlank;
 import lombok.Getter;
